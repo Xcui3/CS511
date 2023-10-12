@@ -56,19 +56,33 @@ example {n : ℤ} : 63 ∣ n ↔ 7 ∣ n ∧ 9 ∣ n := by
 example {k : ℕ} : k ^ 2 ≤ 6 ↔ k = 0 ∨ k = 1 ∨ k = 2 := by
   constructor 
   . intro h1
-    have h2 : k^2 ≤ 4 ∨ k^2 ≥ 5 := by apply le_or_succ_le (k^2) 4
-    obtain h3 | h4 := h2
-    . have h3 : k^2 ≤ 2^2 := by
-        calc 
-          k^2 ≤ 4 := by extra 
-          _ = 2^2 := by numbers 
-
-      
-      /-have h4 : (- 2) ≤ k ∧ k ≤ 2 := by
-        apply abs_le_of_sq_le_sq' h3 
-        extra     
-      -/
-      sorry
+    have h2 := le_or_gt k 0
+    obtain h3|h4 := h2
+    . simp at h3 
+      left
+      apply h3
+    . have h3 := le_or_gt k 1
+      obtain h5|h6 := h3
+      . right
+        left 
+        addarith [h4,h5]
+      . have h3 := le_or_gt k 2
+        obtain h5|h7 := h3
+        . right
+          right
+          addarith[h5,h6]
+        
+        . have h7: k ≥ 3 := by addarith[h7]
+          have h8: k^2 > 6:= by
+            calc
+              k^2 = k * k := by ring
+              _ ≥ 3 *3 := by rel[h7]
+              _ = 9 := by numbers
+              _ > 6 := by ring
+          have h9: ¬(k^2 ≤ 6) := by 
+              rw [not_le]
+              addarith[h8]
+          contradiction
   . intro h1
     obtain h2 | h3 := h1
     calc
@@ -84,4 +98,3 @@ example {k : ℕ} : k ^ 2 ≤ 6 ↔ k = 0 ∨ k = 1 ∨ k = 2 := by
       k ^ 2 = 2 ^ 2 := by rw[h5]
       _ = 4 := by numbers
       _ ≤ 6 := by numbers
-
