@@ -109,11 +109,3 @@ example : ∃! n : ℕ, ∀ a, n ≤ a := by
     apply ge_antisymm
     extra
     exact h2
-
-
-
-    
-
-
-
-  
