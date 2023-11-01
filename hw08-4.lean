@@ -78,7 +78,7 @@ example {a : ℝ} (ha : -1 ≤ a) (n : ℕ) : (1 + a) ^ n ≥ 1 + n * a := by
 
 
 /- 4.d -/
-example : forall_sufficiently_large n : ℕ, (3:ℤ) ^ n ≥ 2 ^ n + 100 := by
+example : forall_sufficiently_large n : ℕ, 3 ^ n ≥ 2 ^ n + 100:= by
   dsimp
   use 8
   intro x hx
@@ -86,10 +86,9 @@ example : forall_sufficiently_large n : ℕ, (3:ℤ) ^ n ≥ 2 ^ n + 100 := by
   . -- base case
     numbers
   . -- inductive case
-    have h1: 2 ^ k >=0 := by sorry
     calc
       3 ^ (k + 1) = 3 * (3 ^ k) := by ring
-      _ ≥ 3 * (2 ^ k + 100) := by sorry
+      _ ≥ 3 * ((2 ^ k) + 100) := by rel[IH]
       _ = 2 ^ (k + 1) + 2 ^ k + 300 := by ring
       _ ≥ 2 ^ (k + 1) + 300 := by extra
       _ ≥ 2 ^ (k + 1) + 100 := by addarith
