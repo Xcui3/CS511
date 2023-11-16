@@ -109,6 +109,27 @@ def gcd (a b : ℤ) : ℤ :=
     -a
 termination_by _ a b => b
 
+theorem fmod_add_fdiv (n d : ℤ) : fmod n d + d * fdiv n d = n := by
+  rw [fdiv, fmod]
+  split_ifs with h1 h2 h3 <;> push_neg at *
+  · -- case `n * d < 0`
+    have IH := fmod_add_fdiv (n + d) d -- inductive hypothesis
+    calc fmod (n + d) d + d * (fdiv (n + d) d - 1)
+        = (fmod (n + d) d + d * fdiv (n + d) d) - d := by ring
+      _ = (n + d) - d := by rw [IH]
+      _ = n := by ring
+  · -- case `0 < d * (n - d)`
+    have IH := fmod_add_fdiv (n - d) d -- inductive hypothesis
+    calc fmod (n - d) d + d * (fdiv (n - d) d + 1)
+        = (fmod (n - d) d + d * fdiv (n - d) d) + d := by ring
+        _ = n := by addarith [IH]
+  · -- case `n = d`
+    calc 0 + d * 1 = d := by ring
+      _ = n := by rw [h3]
+  · -- last case
+    ring
+termination_by _ n d => 2 * n - d
+
 /- 5.a -/
 theorem gcd_dvd (a b : ℤ) : gcd a b ∣ b ∧ gcd a b ∣ a := by
   rw [gcd]
@@ -120,15 +141,32 @@ theorem gcd_dvd (a b : ℤ) : gcd a b ∣ b ∧ gcd a b ∣ a := by
     · -- prove that `gcd a b ∣ b`
       apply IH_left
     · -- prove that `gcd a b ∣ a`
-      have h2: gcd a b = gcd b (fmod a b) := by apply gcd
-      have h3: gcd a b ∣ b := by sorry
+      have h2: gcd a b = gcd b (fmod a b) := by
+        rw [gcd]
+        split_ifs
+        simp
+      have h3: gcd a b ∣ b := by
+        rw [gcd]
+        split_ifs
+        . apply IH_left
+
       obtain ⟨k, hk⟩ := h3
-      have h4: gcd a b ∣ fmod a b := by sorry
+      have h4: gcd a b ∣ fmod a b := by
+        rw [gcd]
+        split_ifs
+        . apply IH_right
+
       obtain ⟨l, hl⟩ := h4
-      use l + k*fdiv a b
+      have h3:= fmod_add_fdiv a b
+      set r := fmod a b
+      set q := fdiv a b
+      use l + k*q
       calc
-        a = b * fdiv a b + fmod a b := by sorry
-        _ =
+        a = r + b * q := by rw [h3]
+        _ = gcd a b * l + (b) * q := by rw [hl]
+        _ = gcd a b * l + ( gcd a b * k) * q := by rw [← hk]
+        _ = gcd a b * (l +  k * q) := by ring
+        _ = gcd b r * (l + k * q) := by rw[h2]
 
 
   · -- case `b < 0`
@@ -138,7 +176,17 @@ theorem gcd_dvd (a b : ℤ) : gcd a b ∣ b ∧ gcd a b ∣ a := by
     · -- prove that `gcd a b ∣ b`
       apply IH_left
     · -- prove that `gcd a b ∣ a`
-      sorry
+      have H := fmod_add_fdiv a (-b)
+      set q := fdiv a (-b)
+      set r := fmod a (-b)
+      obtain ⟨k, hk⟩ := IH_left
+      obtain ⟨l, hl⟩ := IH_right
+
+      use l - k * q
+      calc a = r + (-b) * q := by rw [H]
+        _ = gcd b r * l + (- (gcd b r * k)) * q := by rw [← hk, ← hl]
+        _ = gcd b r * (l - k * q) := by ring
+
   · -- case `b = 0`, `0 ≤ a`
     constructor
     · -- prove that `gcd a b ∣ b`
@@ -170,7 +218,7 @@ theorem gcd_dvd (a b : ℤ) : gcd a b ∣ b ∧ gcd a b ∣ a := by
 termination_by gcd_dvd a b => b
 
 
-/- 5.b -/
+/-  ========================== 5.b ======================  -/
 mutual
 
 def L (a b : ℤ) : ℤ :=
@@ -194,27 +242,6 @@ def R (a b : ℤ) : ℤ :=
 end
 termination_by L a b => b ; R a b => b
 
-
-theorem fmod_add_fdiv (n d : ℤ) : fmod n d + d * fdiv n d = n := by
-  rw [fdiv, fmod]
-  split_ifs with h1 h2 h3 <;> push_neg at *
-  · -- case `n * d < 0`
-    have IH := fmod_add_fdiv (n + d) d -- inductive hypothesis
-    calc fmod (n + d) d + d * (fdiv (n + d) d - 1)
-        = (fmod (n + d) d + d * fdiv (n + d) d) - d := by ring
-      _ = (n + d) - d := by rw [IH]
-      _ = n := by ring
-  · -- case `0 < d * (n - d)`
-    have IH := fmod_add_fdiv (n - d) d -- inductive hypothesis
-    calc fmod (n - d) d + d * (fdiv (n - d) d + 1)
-        = (fmod (n - d) d + d * fdiv (n - d) d) + d := by ring
-        _ = n := by addarith [IH]
-  · -- case `n = d`
-    calc 0 + d * 1 = d := by ring
-      _ = n := by rw [h3]
-  · -- last case
-    ring
-termination_by _ n d => 2 * n - d
 
 theorem L_mul_add_R_mul (a b : ℤ) : L a b * a + R a b * b = gcd a b := by
   rw [R, L, gcd]
